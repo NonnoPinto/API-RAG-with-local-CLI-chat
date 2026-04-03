@@ -1,0 +1,88 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - rag_network
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: ollama_init
+    env_file:
+      - .env
+    depends_on:
+      ollama:
+        condition: service_started
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "
+        echo 'In attesa che Ollama sia pronto...'
+        while ! ollama list >/dev/null 2>&1; do sleep 2; done
+        echo 'Scaricamento del modello chat in locale in corso...'
+        ollama pull $${CHAT_LLM_MODEL:-llama3.2:1b}
+        echo 'Scaricamento del modello embedding in corso...'
+        ollama pull $${EMBEDDING_MODEL:-bge-m3}
+        echo 'Tutti i modelli sono pronti!'
+      "
+    networks:
+      - rag_network
+
+  chat:
+    build:
+      context: .
+    image: lightrag-app
+    container_name: lightrag_chat
+    stdin_open: true
+    tty: true
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ./kb:/app/kb
+      - .:/app
+    depends_on:
+      ollama:
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
+    networks:
+      - rag_network
+    command: ["python", "chat.py"]
+
+  ingest-local-firecrawl:
+    build:
+      context: .
+    image: lightrag-app
+    container_name: ingest-local-firecrawl
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ./kb:/app/kb
+      - ./docs:/docs
+      - .:/app
+    depends_on:
+      ollama:
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
+    networks:
+      - rag_network
+    command: ["python", "ingest_local_and_firecrawl.py"]
+    restart: "no"
+
+networks:
+  rag_network:
+    driver: bridge
+
+volumes:
+  ollama_data:
+    name: ollama_data

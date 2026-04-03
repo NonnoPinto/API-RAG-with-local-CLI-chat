@@ -1,0 +1,4 @@
+   Il CEO della startup italiana "OpenPizza" è Giovanni Rossi.
+   OpenPizza ha sviluppato un nuovo forno chiamato "FornoVeloce" nel 2023.
+   Il FornoVeloce utilizza l'intelligenza artificiale per cuocere la pizza in soli 2 minuti.
+   

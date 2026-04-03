@@ -1,0 +1,59 @@
+# ==========================================
+# Environments & Secrets
+# ==========================================
+.env
+.venv
+env/
+venv/
+ENV/
+
+# ==========================================
+# LightRAG / Application Data
+# ==========================================
+# Ignore Knowledge Base generated files
+kb/
+!kb/.gitkeep
+
+# Ignore user uploaded documents (optional, uncomment if you want to keep docs in repo)
+# docs/
+# !docs/.gitkeep
+
+# ==========================================
+# Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==========================================
+# IDEs and OS Specific
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo

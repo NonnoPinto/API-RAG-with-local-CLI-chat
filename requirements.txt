@@ -1,0 +1,7 @@
+lightrag-hku
+openai
+aiohttp
+traceloop-sdk
+firecrawl-py
+pypdf
+opentelemetry-exporter-otlp
