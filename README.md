@@ -16,7 +16,7 @@ Il progetto utilizza `docker compose` per orchestrare i servizi:
 ## Funzionalità Principali
 
 -   **Grafi della Conoscenza (Graph-RAG)**: Costruisce relazioni e nodi usando [LightRAG](https://github.com/HKUDS/LightRAG). Il progetto fa uso della modalità "hybrid" per combinare la ricerca vettoriale a quella topologica.
--   **Motore 100% Locale e Leggero**: Utilizza Ollama ottimizzato per hardware consumer (LLM: `llama3.2:3b`, Embedding: `bge-m3` con contesto a 8KB). Nessun dato sensibile viene inviato ai provider LLM cloud.
+-   **Motore Ibrido e Leggero**: Utilizza le API di Gemini per la creazione del grafo e Ollama per embedding, interrogazione del grafo e come modello linguistico, ottimizzato per hardware consumer (LLM: `llama3.2:3b`, Embedding: `bge-m3` con contesto a 8KB).
 -   **Osservabilità OpenLLMetry**: Traceloop intercetta automaticamente tutte le invocazioni dei modelli e i task di indicizzazione.
 -   **Web Crawling**: Integrazione con Firecrawl per scaricare pagine web complesse, ripulire l'HTML, e salvare i dati nel database come Markdown.
 -   **Interfaccia Terminale (CLI)**: Nessun endpoint API, solo una chat pulita e reattiva direttamente nel tuo terminale.
