@@ -94,7 +94,7 @@ async def crawl_and_clean_url(url: str) -> str:
 
 																						   
         def scrape():
-            return app.scrape_url(url, params={"formats": ["markdown"]})
+            return app.scrape(url=url, formats=["markdown"])
 
         result = await asyncio.to_thread(scrape)
 
