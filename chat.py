@@ -28,14 +28,14 @@ LLM_CONTEXT_WINDOW = int(os.environ.get("LLM_CONTEXT_WINDOW", "8192"))
 WORKSPACE = os.environ.get("LIGHTRAG_WORKSPACE", "/app/kb")
 
 if not os.path.exists(WORKSPACE):
-    print(f"Errore: Il workspace del Knowledge Graph ({WORKSPACE}) non esiste.")
-    print("Per favore, esegui prima l'ingestion dei documenti.")
+    print(f"Error: The Knowledge Graph workspace ({WORKSPACE}) does not exist.")
+    print("Please run the ingestion script first.")
     sys.exit(1)
 
 # ==========================================
 # 3. INIZIALIZZAZIONE LIGHTRAG
 # ==========================================
-print("\n[Sistema]: Inizializzazione di LightRAG in corso...")
+print("\n[System]: Initializing LightRAG...")
 # 1. Definiamo la funzione per Llama (Keyword Extraction locale)
 async def ollama_llm_complete(prompt, **kwargs):
     return await ollama_model_complete(
@@ -80,45 +80,42 @@ async def chat_loop():
     Loop principale per l'interazione via terminale con il Knowledge Graph.
     Traceloop monitora ogni iterazione grazie al decoratore.
     """
-    # Inizializza gli storage in modo asincrono (richiesto dalle nuove versioni di LightRAG)
     await rag.initialize_storages()
 
     print("\n==========================================")
     print(" 🤖 LightRAG CLI (Modalità MIX)")
     print(f" LLM: {CHAT_LLM_MODEL} | Embedding: {EMBEDDING_MODEL}")
-    print(" Scrivi 'exit' o premi Ctrl+C per uscire")
+    print(" Write 'exit' or press Ctrl+C to exit")
     print("==========================================\n")
 
     while True:
         try:
-            # Attendiamo l'input dell'utente
-            query = input("🧑 [Tu]: ")
+            query = input("🧑 [You]: ")
 
             # Gestione uscita
             if query.strip().lower() in ["exit", "quit", "esci"]:
-                print("\n[Sistema]: Chiusura in corso. Arrivederci!")
+                print("\n[System]: Closing in progress. Goodbye!")
                 break
 
-            # Ignoriamo input vuoti
             if not query.strip():
                 continue
 
-            print("⚙️  [LightRAG]: Analisi del grafo e ricerca vettoriale in corso...")
-
-            # Esecuzione della query forzando la modalità 'mix' (Vincolo di qualità)
-            # await rag.aquery utilizza Traceloop in background
+            print("⚙️  [LightRAG]: Analysis of the graph and vector search in progress...")
+            start_time = os.times()[4]
             response = await rag.aquery(query, param=query_params)
-
-            print(f"\n🤖 [Risposta]:\n{response}\n")
+            
+            end_time = os.times()[4]
+            duration = end_time - start_time
+            print(f"\n🤖 [Response]:\n{response}\n")
+            print(f"⏱️  Response time: {duration:.2f} seconds")
             print("-" * 42)
 
         except KeyboardInterrupt:
-            print("\n\n[Sistema]: Interruzione da tastiera rilevata. Arrivederci!")
+            print("\n\n[System]: Interruption from keyboard detected. Goodbye!")
             break
         except Exception as e:
-            print(f"\n❌ [Errore]: Si è verificato un problema: {e}\n")
+            print(f"\n❌ [Error]: A problem occurred: {e}\n")
 
 
 if __name__ == "__main__":
-    # Avvia il loop asincrono
     asyncio.run(chat_loop())

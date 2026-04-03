@@ -89,26 +89,17 @@ async def crawl_and_clean_url(url: str) -> str:
         if not api_key or api_key == "your_firecrawl_api_key_here":
             print(f"Warning: FIRECRAWL_API_KEY not set. Cannot crawl {url}.")
             return ""
-
-        app = FirecrawlApp(api_key=api_key)
-
-																						   
+        app = FirecrawlApp(api_key=api_key)																	   
         def scrape():
             return app.scrape(url=url, formats=["markdown"])
-
+        
         result = await asyncio.to_thread(scrape)
-
-																									   
+																					   
         if isinstance(result, dict):
             if "markdown" in result:
                 return result["markdown"]
-				  
-								
             elif "data" in result and isinstance(result["data"], dict) and "markdown" in result["data"]:
-												
-			  
                 return result["data"]["markdown"]
-
         return str(result)
     except Exception as e:
         print(f"Error crawling {url} with Firecrawl: {e}")
@@ -121,29 +112,41 @@ async def run_ingestion(docs_dir: str = DOCS_DIR, urls: List[str] = None):
     documents_to_insert = []
 
     # 1. Process local files
-												  
-    local_docs = await read_local_files(docs_dir)
-    documents_to_insert.extend(local_docs)
-
+    try:
+        print(f"📂 Local file reading from: {docs_dir}...")
+        local_docs = await read_local_files(docs_dir)
+        if local_docs:
+            documents_to_insert.extend(local_docs)
+            print(f"✅ Loaded {len(local_docs)} local documents.")
+    except Exception as e:
+        print(f"❌ Critical error occurred while reading local files: {e}")
+    
     # 2. Process URLs
     if urls:
-											 
-								   
-        crawl_tasks = [crawl_and_clean_url(url) for url in urls]
-        web_docs = await asyncio.gather(*crawl_tasks)
-								  
-        web_docs = [doc for doc in web_docs if doc]
-        documents_to_insert.extend(web_docs)
-
-									  
+        print(f"🌐 Starting crawling of {len(urls)} URLs...")
+        try:
+            crawl_tasks = [crawl_and_clean_url(url) for url in urls]
+            web_docs_results = await asyncio.gather(*crawl_tasks, return_exceptions=True)
+            
+            count_web = 0
+            for i, result in enumerate(web_docs_results):
+                if isinstance(result, Exception):
+                    print(f"⚠️ Fallito crawling per {urls[i]}: {result}")
+                elif result:
+                    documents_to_insert.extend(result)
+                    count_web += 1
+            
+            if count_web > 0:
+                print(f"✅ Loaded {count_web} documents from the web.")
+        except Exception as e:
+            print(f"❌ Unexpected error occurred while managing the URL list: {e}")
+				  
     if not documents_to_insert:
-        print("No documents found for ingestion.")
+        print("⚠️ No documents found for ingestion.")
         return
 
-		  
     print(f"Starting async insertion of {len(documents_to_insert)} documents...")
-    
-											
+    								
     try:
         # Inizializza gli storage prima dell'inserimento
         await rag.initialize_storages()
@@ -157,14 +160,6 @@ async def run_ingestion(docs_dir: str = DOCS_DIR, urls: List[str] = None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="LightRAG Ingestor")
     parser.add_argument("--url", type=str, action="append", help="URL to crawl")
-				
-				 
-						
-																	
-	 
     args = parser.parse_args()
-
-    urls_to_crawl = args.url if args.url else []
-
-							
+    urls_to_crawl = args.url if args.url else []					
     asyncio.run(run_ingestion(docs_dir=DOCS_DIR, urls=urls_to_crawl))
